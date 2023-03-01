@@ -1,4 +1,5 @@
 ﻿const github = require('@actions/github');
+const blobFactory = require("./fabrics/FileFactory");
 
 class UpdateFileContent {
     constructor(gh_token) {
@@ -56,9 +57,8 @@ class UpdateFileContent {
         }
     };
 
-    async UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
+    async GetFileContent(repoOwner, repoName, filePath) {
         try {
-
             const fileSHA = await this.octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
                 owner:  repoOwner,
                 repo: repoName,
@@ -66,7 +66,7 @@ class UpdateFileContent {
                 headers: {
                     'X-GitHub-Api-Version': '2022-11-28'
                 }
-              });
+            });
 
             this.info(`${filePath} sha: ${fileSHA.data.sha}`);
 
@@ -75,11 +75,22 @@ class UpdateFileContent {
                 repo: repoName,
                 file_sha: fileSHA.data.sha,
                 headers: {
-                  'X-GitHub-Api-Version': '2022-11-28'
+                'X-GitHub-Api-Version': '2022-11-28'
                 }
-              });
+            });
 
             const fileContent = Buffer.from(blob.data.content, "base64").toString("utf-8");
+            return fileContent;
+        } catch (error) {
+            this.error(`Couldn't retrive file content. ${error}`);
+            throw error;
+        }
+
+    };
+
+    async UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
+        try {
+            const fileContent = await this.GetFileContent(repoOwner, repoName, filePath);
             const newFileContent = fileContent.replace(oldVersion, newVersion);
 
             const FileUpdated = await this.octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
@@ -98,6 +109,73 @@ class UpdateFileContent {
 
             this.info(`File path: ${FileUpdated.data.content.path}`);
             return FileUpdated.data.commit.sha;
+        } catch (error) {
+            this.error(`Couldn't update file. ${error}`);
+            throw error;
+        }
+    };
+
+    CreateBlobList(filesPath, blobContentList) {
+        let treeObj = {};
+        let blobList = [];
+        filesPath.forEach(file => {
+            blobContentList.forEach(blobContent => {
+                treeObj.path = file,
+                treeObj.mode = '100644',
+                treeObj.type = 'blob'
+                treeObj.content = blobContent;
+                blobList.push(treeObj);
+            });
+        });
+        return blobList;
+    };
+
+    async UpdateFiles(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
+        try {
+            const latestSHA = process.env.GITHUB_SHA;
+            let oldFileContentList = [];
+            let newFileContentList = [];
+            let files = filePath.split(" ");
+            let treeList = [];
+            let blobsList = [];
+
+            files.forEach(file => {
+                oldFileContentList.push(this.GetFileContent(repoOwner, repoName, file));
+                blobsList.push(blobFactory.CreateInstance(file, null));
+            });
+
+            oldFileContentList.forEach(oldContent => {
+                let i = 0;
+                blobsList[i].setContent(oldContent.replace(oldVersion, newVersion));
+                treeList.push(blobsList[i].getBlob());
+                i++;
+            });
+
+            const tree = await this.octokit.request('POST /repos/{owner}/{repo}/git/trees', {
+                owner: repoOwner,
+                repo: repoName,
+                base_tree: latestSHA,
+                tree: treeList,
+                headers: {
+                  'X-GitHub-Api-Version': '2022-11-28'
+                }
+              });
+
+            const commit = await octokit.request('POST /repos/{owner}/{repo}/git/commits', {
+                owner: repoOwner,
+                repo: repoName,
+                message: commitMessage,
+                tree: tree.data.sha,
+                parents: [latestSHA],
+              });
+
+              await octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
+                owner: repoOwner,
+                repo: repoName,
+                ref: `heads/${tgtBranch}`,
+                sha: commit.data.sha,
+              });
+
         } catch (error) {
             this.error(`Couldn't update file. ${error}`);
             throw error;
