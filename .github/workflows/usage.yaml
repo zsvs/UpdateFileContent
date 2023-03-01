@@ -51,4 +51,4 @@ jobs:
         old_version : ${{ inputs.old_version }}
         new_version: ${{ inputs.new_version}}
         target_branch: ${{ inputs.target_branch }}
-        github_tkn: ${{ secrets.GITHUB_TOKEN }}
+        github_tkn: ${{ secrets.PAT_TOKEN }}
