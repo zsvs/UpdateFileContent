@@ -43,7 +43,7 @@ jobs:
 # TODO Change zsvs/OctokitAction@main to actual action
 
     - name: Get Branch with octo
-      uses: zsvs/UpdateFileContent@feature/trees
+      uses: zsvs/UpdateFileContent@main
       with:
         repo: ${{ inputs.repo }}
         owner: ${{ inputs.owner }}
