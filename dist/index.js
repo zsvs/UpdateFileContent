@@ -8918,7 +8918,7 @@ class UpdateFileContent {
             });
             const sha = fileSHA.data.sha;
             const fileContent = Buffer.from(blob.data.content, "base64").toString("utf-8");
-            return {fileContent, sha};
+            return fileContent;
         } catch (error) {
             this.error(`Couldn't retrive file content. ${error}`);
             throw error;
@@ -8977,8 +8977,10 @@ class UpdateFileContent {
             const blobFactory = new FileFactory();
 
             files.forEach(async (file) => {
-                let currentFileContent = await this.GetFileContent(repoOwner, repoName, file);
-                blobsList.push((blobFactory.CreateInstance(file, currentFileContent.replace(oldVersion, newVersion))).getBlob());
+                let currentFileData = await this.GetFileContent(repoOwner, repoName, file);
+                let blobInstance = blobFactory.CreateInstance(file, currentFileData.fileContent.replace(oldVersion, newVersion));
+                this.warning(`Blob Instance: ${blobInstance.getBlob()}`)
+                blobsList.push(blobInstance.getBlob());
                 console.log(blobsList);
             });
             this.warning(`Blobs list: ${blobsList}`);
