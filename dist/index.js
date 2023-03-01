@@ -8927,7 +8927,6 @@ class UpdateFileContent {
     async UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
         try {
 
-            this.warning(`Content b64:${Buffer.from(mycontent).toString("base64")}`);
             const fileSHA = await this.octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
                 owner:  repoOwner,
                 repo: repoName,
@@ -8982,11 +8981,11 @@ class UpdateFileContent {
             if (listBranches.includes(tgtBranch)){
                 this.warning(`Branch ${tgtBranch} is already exists`);
                 this.notice(`Update file: ${filePath}`);
-                this.warning(`SHA of updated file: ${(await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)).toString()}`);
+                this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
             } else {
                 this.info("Start Creating branch");
-                this.warning(`ref of branch: ${(await this.CreateBranch(repoOwner, repoName, tgtBranch)).toString()}`);
-                this.warning(`SHA of updated file: ${(await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)).toString()}`);
+                this.warning(`ref of branch: ${await this.CreateBranch(repoOwner, repoName, tgtBranch)}`);
+                this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
             }
         } catch (error) {
             throw error;
