@@ -8978,7 +8978,8 @@ class UpdateFileContent {
 
             files.forEach(async (file) => {
                 let currentFileContent = await this.GetFileContent(repoOwner, repoName, file);
-                blobsList.push(blobFactory.CreateInstance(file, currentFileContent.replace(oldVersion, newVersion)).getBlob());
+                blobsList.push((blobFactory.CreateInstance(file, currentFileContent.replace(oldVersion, newVersion))).getBlob());
+                console.log(blobsList);
             });
             this.warning(`Blobs list: ${blobsList}`);
             const tree = await this.octokit.request('POST /repos/{owner}/{repo}/git/trees', {
