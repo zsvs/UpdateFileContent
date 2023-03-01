@@ -80,7 +80,7 @@ class UpdateFileContent {
             });
             const sha = fileSHA.data.sha;
             const fileContent = Buffer.from(blob.data.content, "base64").toString("utf-8");
-            return fileContent;
+            return {fileContent, sha};
         } catch (error) {
             this.error(`Couldn't retrive file content. ${error}`);
             throw error;
@@ -122,32 +122,29 @@ class UpdateFileContent {
 
     async UpdateFiles(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
         try {
-            const latestSHA = process.env.GITHUB_SHA;
+            const latestSHA = await octokit.request('GET /repos/{owner}/{repo}/git/ref/{ref}', {
+                owner: "OWNER",
+                repo: "REPO",
+                ref: `heads/${tgtBranch}`,
+              });
+
             let files = filePath.split(" ");
             let blobsList = [];
             const blobFactory = new FileFactory();
             for (const file of files) {
-                let currentFileData = await this.GetFileContent(repoOwner, repoName, file);
+                let currentFileData = await this.GetFileContent(repoOwner, repoName, file).fileContent;
                 let blobInstance = blobFactory.CreateInstance(file, currentFileData.replace(oldVersion, newVersion));
                 this.warning(`Blob Instance: ${blobInstance.getBlob()}`)
                 blobsList.push(blobInstance.getBlob());
                 console.log(blobsList);
             }
 
-            // files.forEach(async (file) => {
-            //     let currentFileData = await this.GetFileContent(repoOwner, repoName, file);
-            //     let blobInstance = blobFactory.CreateInstance(file, currentFileData.replace(oldVersion, newVersion));
-            //     this.warning(`Blob Instance: ${blobInstance.getBlob()}`)
-            //     blobsList.push(blobInstance.getBlob());
-            //     console.log(blobsList);
-            // });
-
             this.warning(`Blobs list: ${blobsList}`);
 
             const tree = await this.octokit.request('POST /repos/{owner}/{repo}/git/trees', {
                 owner: repoOwner,
                 repo: repoName,
-                base_tree: latestSHA,
+                base_tree: latestSHA.data.object.sha,
                 tree: blobsList,
                 headers: {
                   'X-GitHub-Api-Version': '2022-11-28'
@@ -159,7 +156,7 @@ class UpdateFileContent {
                 repo: repoName,
                 message: commitMessage,
                 tree: tree.data.sha,
-                parents: [latestSHA],
+                parents: [latestSHA.data.object.sha],
               });
 
               await octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
