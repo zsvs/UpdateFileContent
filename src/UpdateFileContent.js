@@ -140,7 +140,7 @@ class UpdateFileContent {
 
             files.forEach(async (file) => {
                 let currentFileData = await this.GetFileContent(repoOwner, repoName, file);
-                let blobInstance = blobFactory.CreateInstance(file, currentFileData.fileContent.replace(oldVersion, newVersion));
+                let blobInstance = blobFactory.CreateInstance(file, currentFileData.replace(oldVersion, newVersion));
                 this.warning(`Blob Instance: ${blobInstance.getBlob()}`)
                 blobsList.push(blobInstance.getBlob());
                 console.log(blobsList);
