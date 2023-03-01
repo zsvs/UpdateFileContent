@@ -10,7 +10,7 @@ on:
       file:
         requred: true
         type: string
-        default: oh-my-posh-install.ps1
+        default: "oh-my-posh-install.ps1"
       owner:
         requred: true
         type: string
@@ -39,7 +39,7 @@ jobs:
     - uses: actions/setup-node@v2
       name: Node installation
       with:
-        node-version: 12
+        node-version: 14
 # TODO Change zsvs/OctokitAction@main to actual action
 
     - name: Get Branch with octo

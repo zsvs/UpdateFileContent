@@ -8967,7 +8967,8 @@ class UpdateFileContent {
             this.info(`File path: ${FileUpdated.data.content.path}`);
             return FileUpdated.data.commit.sha;
         } catch (error) {
-            this.error(`Couldn't update file. Error: ${error}`)
+            this.error(`Couldn't update file. Error: ${error}`);
+            throw error;
         }
     };
 
@@ -8983,6 +8984,7 @@ class UpdateFileContent {
                 this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
             } else {
                 this.info("Start Creating branch");
+                this.info(`File path: ${filePath}`)
                 this.warning(`ref of branch: ${await this.CreateBranch(repoOwner, repoName, tgtBranch)}`);
                 this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
             }
