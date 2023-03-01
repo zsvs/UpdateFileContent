@@ -31,8 +31,8 @@
 // main(owner, repo, filePath);
 
 class UpdateFileContent {
-    constructor() {
-        this.octokit = github.getOctokit(this.inputs.GITHUB_TKN);
+    constructor(gh_token) {
+        this.octokit = github.getOctokit(gh_token);
     };
 
     setLogger({notice, info, output, warning, error}) {

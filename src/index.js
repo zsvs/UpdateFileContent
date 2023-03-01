@@ -14,7 +14,7 @@ const UpdateFileContent = require("./UpdateFileContent.js");
 
         };
 
-        const action = new UpdateFileContent();
+        const action = new UpdateFileContent(inputs.GITHUB_TKN);
         action.setLogger({
             notice: core.notice,
             info: core.info,

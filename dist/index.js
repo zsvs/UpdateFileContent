@@ -8869,8 +8869,8 @@ const github = __nccwpck_require__(4778);
 // main(owner, repo, filePath);
 
 class UpdateFileContent {
-    constructor() {
-        this.octokit = github.getOctokit(this.inputs.GITHUB_TKN);
+    constructor(gh_token) {
+        this.octokit = github.getOctokit(gh_token);
     };
 
     setLogger({notice, info, output, warning, error}) {
@@ -9182,7 +9182,7 @@ const UpdateFileContent = __nccwpck_require__(820);
 
         };
 
-        const action = new UpdateFileContent();
+        const action = new UpdateFileContent(inputs.GITHUB_TKN);
         action.setLogger({
             notice: core.notice,
             info: core.info,
