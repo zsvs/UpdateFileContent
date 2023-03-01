@@ -8928,8 +8928,8 @@ class UpdateFileContent {
 
     async UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
         try {
-            const fileContent = await this.GetFileContent(repoOwner, repoName, filePath).fileContent;
-            const fileSHA =  await this.GetFileContent(repoOwner, repoName, filePath).sha;
+            const fileContent = (await this.GetFileContent(repoOwner, repoName, filePath)).fileContent;
+            const fileSHA =  (await this.GetFileContent(repoOwner, repoName, filePath)).sha;
             const newFileContent = fileContent.replace(oldVersion, newVersion);
 
             const FileUpdated = await this.octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
