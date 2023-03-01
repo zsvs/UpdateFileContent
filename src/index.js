@@ -1,5 +1,5 @@
 ﻿const core = require("@actions/core");
-const UpdateFileContent = require("./UpdateFileContent.js");
+const UpdateFileContent = require("./UpdateFileContent");
 
 (async () =>{
     try {
