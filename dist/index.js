@@ -8990,7 +8990,7 @@ class UpdateFileContent {
                 }
               });
 
-            const commit = await octokit.request('POST /repos/{owner}/{repo}/git/commits', {
+            const commit = await this.octokit.request('POST /repos/{owner}/{repo}/git/commits', {
                 owner: repoOwner,
                 repo: repoName,
                 message: commitMessage,
@@ -8998,7 +8998,7 @@ class UpdateFileContent {
                 parents: [latestSHA.data.object.sha],
               });
 
-              await octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
+              await this.octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
                 owner: repoOwner,
                 repo: repoName,
                 ref: `heads/${tgtBranch}`,
