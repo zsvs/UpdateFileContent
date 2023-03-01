@@ -8838,36 +8838,6 @@ function wrappy (fn, cb) {
 
 const github = __nccwpck_require__(4778);
 
-// const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
-// const owner = 'zsvs';
-// const repo = 'OctokitAction';
-// const filePath = "dist/index.js"
-// const main = async (user, repoOwner, path) =>{
-//     const fileSHA = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
-//         owner: user,
-//         repo: repoOwner,
-//         path: path,
-//         headers: {
-//             'X-GitHub-Api-Version': '2022-11-28'
-//         }
-//         });
-//         console.log(`${path} sha: ${fileSHA.data.sha}`);
-
-//     const blob = await octokit.request('GET /repos/{owner}/{repo}/git/blobs/{file_sha}', {
-//         owner: user,
-//         repo: repoOwner,
-//         file_sha: fileSHA.data.sha,
-//         headers: {
-//           'X-GitHub-Api-Version': '2022-11-28'
-//         }
-//       });
-//     // console.log(Buffer.from(blob.data.content, "base64").toString("utf-8"));
-//     const fileContent = Buffer.from(blob.data.content, "base64").toString("utf-8");
-//     console.log(fileContent.replace("module.exports = __webpack_exports__;", "YAAAAY I CHANGE IT"));
-// }
-
-// main(owner, repo, filePath);
-
 class UpdateFileContent {
     constructor(gh_token) {
         this.octokit = github.getOctokit(gh_token);
@@ -8967,9 +8937,30 @@ class UpdateFileContent {
             this.info(`File path: ${FileUpdated.data.content.path}`);
             return FileUpdated.data.commit.sha;
         } catch (error) {
-            this.error(`Couldn't update file. Error: ${error}`);
+            this.error(`Couldn't update file. ${error}`);
             throw error;
         }
+    };
+
+    async CreatePR(repoOwner, repoName, tgtBranch) {
+        try {
+            const prURL = await octokit.request('POST /repos/{owner}/{repo}/pulls', {
+                owner: repoOwner,
+                repo: repoName,
+                title: 'Amazing new feature',
+                body: 'Please pull these awesome changes in!',
+                head: `${repoOwner}:${tgtBranch}`,
+                base: 'main',
+                headers: {
+                  'X-GitHub-Api-Version': '2022-11-28'
+                }
+              });
+            return prURL.data.url
+        } catch (error) {
+            this.error(`Couldn't create PR. ${error}`);
+            throw error;
+        }
+
     };
 
     async run(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
@@ -8982,11 +8973,13 @@ class UpdateFileContent {
                 this.warning(`Branch ${tgtBranch} is already exists`);
                 this.notice(`Update file: ${filePath}`);
                 this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
+                this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
             } else {
                 this.info("Start Creating branch");
                 this.info(`File path: ${filePath}`)
                 this.warning(`ref of branch: ${await this.CreateBranch(repoOwner, repoName, tgtBranch)}`);
                 this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
+                this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
             }
         } catch (error) {
             throw error;
