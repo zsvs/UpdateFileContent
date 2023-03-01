@@ -93,7 +93,6 @@ class UpdateFileContent {
                 owner:  repoOwner,
                 repo: repoName,
                 path: filePath,
-                ref: tgtBranch,
                 headers: {
                     'X-GitHub-Api-Version': '2022-11-28'
                 }
