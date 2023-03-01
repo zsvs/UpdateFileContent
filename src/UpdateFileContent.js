@@ -177,7 +177,7 @@ class UpdateFileContent {
               });
 
         } catch (error) {
-            this.error(`Couldn't update file. ${error}`);
+            this.error(`Couldn't update files. ${error}`);
             throw error;
         }
     };
@@ -208,18 +208,30 @@ class UpdateFileContent {
             this.info(`Github env:\n SERVER_URL: ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/commit/${process.env.GITHUB_SHA}`)
             const listBranches = await this.GetListBranches(repoOwner, repoName);
             this.warning(`List of branches ${listBranches}`);
-
+            if (filePath.split(" ").length)
             if (listBranches.includes(tgtBranch)){
                 this.warning(`Branch ${tgtBranch} is already exists`);
                 this.notice(`Update file: ${filePath}`);
-                this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
-                this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                if (filePath.split(" ").length == 1) {
+                    this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
+                    this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                } else if (filePath.split(" ").length > 1) {
+                    this.warning(`SHA of updated file: ${await this.UpdateFiles(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
+                    this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                };
+
             } else {
                 this.info("Start Creating branch");
                 this.info(`File path: ${filePath}`)
                 this.warning(`ref of branch: ${await this.CreateBranch(repoOwner, repoName, tgtBranch)}`);
-                this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
-                this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                if (filePath.split(" ").length == 1) {
+                    this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
+                    this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                } else if (filePath.split(" ").length > 1) {
+                    this.warning(`SHA of updated file: ${await this.UpdateFiles(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
+                    this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                };
+
             }
         } catch (error) {
             throw error;

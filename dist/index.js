@@ -8837,6 +8837,7 @@ function wrappy (fn, cb) {
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 const github = __nccwpck_require__(4778);
+const blobFactory = __nccwpck_require__(8086);
 
 class UpdateFileContent {
     constructor(gh_token) {
@@ -8894,9 +8895,8 @@ class UpdateFileContent {
         }
     };
 
-    async UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
+    async GetFileContent(repoOwner, repoName, filePath) {
         try {
-
             const fileSHA = await this.octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
                 owner:  repoOwner,
                 repo: repoName,
@@ -8904,7 +8904,7 @@ class UpdateFileContent {
                 headers: {
                     'X-GitHub-Api-Version': '2022-11-28'
                 }
-              });
+            });
 
             this.info(`${filePath} sha: ${fileSHA.data.sha}`);
 
@@ -8913,11 +8913,22 @@ class UpdateFileContent {
                 repo: repoName,
                 file_sha: fileSHA.data.sha,
                 headers: {
-                  'X-GitHub-Api-Version': '2022-11-28'
+                'X-GitHub-Api-Version': '2022-11-28'
                 }
-              });
+            });
 
             const fileContent = Buffer.from(blob.data.content, "base64").toString("utf-8");
+            return fileContent;
+        } catch (error) {
+            this.error(`Couldn't retrive file content. ${error}`);
+            throw error;
+        }
+
+    };
+
+    async UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
+        try {
+            const fileContent = await this.GetFileContent(repoOwner, repoName, filePath);
             const newFileContent = fileContent.replace(oldVersion, newVersion);
 
             const FileUpdated = await this.octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
@@ -8938,6 +8949,73 @@ class UpdateFileContent {
             return FileUpdated.data.commit.sha;
         } catch (error) {
             this.error(`Couldn't update file. ${error}`);
+            throw error;
+        }
+    };
+
+    CreateBlobList(filesPath, blobContentList) {
+        let treeObj = {};
+        let blobList = [];
+        filesPath.forEach(file => {
+            blobContentList.forEach(blobContent => {
+                treeObj.path = file,
+                treeObj.mode = '100644',
+                treeObj.type = 'blob'
+                treeObj.content = blobContent;
+                blobList.push(treeObj);
+            });
+        });
+        return blobList;
+    };
+
+    async UpdateFiles(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
+        try {
+            const latestSHA = process.env.GITHUB_SHA;
+            let oldFileContentList = [];
+            let newFileContentList = [];
+            let files = filePath.split(" ");
+            let treeList = [];
+            let blobsList = [];
+
+            files.forEach(file => {
+                oldFileContentList.push(this.GetFileContent(repoOwner, repoName, file));
+                blobsList.push(blobFactory.CreateInstance(file, null));
+            });
+
+            oldFileContentList.forEach(oldContent => {
+                let i = 0;
+                blobsList[i].setContent(oldContent.replace(oldVersion, newVersion));
+                treeList.push(blobsList[i].getBlob());
+                i++;
+            });
+
+            const tree = await this.octokit.request('POST /repos/{owner}/{repo}/git/trees', {
+                owner: repoOwner,
+                repo: repoName,
+                base_tree: latestSHA,
+                tree: treeList,
+                headers: {
+                  'X-GitHub-Api-Version': '2022-11-28'
+                }
+              });
+
+            const commit = await octokit.request('POST /repos/{owner}/{repo}/git/commits', {
+                owner: repoOwner,
+                repo: repoName,
+                message: commitMessage,
+                tree: tree.data.sha,
+                parents: [latestSHA],
+              });
+
+              await octokit.request('PATCH /repos/{owner}/{repo}/git/refs/{ref}', {
+                owner: repoOwner,
+                repo: repoName,
+                ref: `heads/${tgtBranch}`,
+                sha: commit.data.sha,
+              });
+
+        } catch (error) {
+            this.error(`Couldn't update files. ${error}`);
             throw error;
         }
     };
@@ -8968,18 +9046,30 @@ class UpdateFileContent {
             this.info(`Github env:\n SERVER_URL: ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/commit/${process.env.GITHUB_SHA}`)
             const listBranches = await this.GetListBranches(repoOwner, repoName);
             this.warning(`List of branches ${listBranches}`);
-
+            if (filePath.split(" ").length)
             if (listBranches.includes(tgtBranch)){
                 this.warning(`Branch ${tgtBranch} is already exists`);
                 this.notice(`Update file: ${filePath}`);
-                this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
-                this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                if (filePath.split(" ").length == 1) {
+                    this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
+                    this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                } else if (filePath.split(" ").length > 1) {
+                    this.warning(`SHA of updated file: ${await this.UpdateFiles(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
+                    this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                };
+
             } else {
                 this.info("Start Creating branch");
                 this.info(`File path: ${filePath}`)
                 this.warning(`ref of branch: ${await this.CreateBranch(repoOwner, repoName, tgtBranch)}`);
-                this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
-                this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                if (filePath.split(" ").length == 1) {
+                    this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
+                    this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                } else if (filePath.split(" ").length > 1) {
+                    this.warning(`SHA of updated file: ${await this.UpdateFiles(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
+                    this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                };
+
             }
         } catch (error) {
             throw error;
@@ -8987,6 +9077,69 @@ class UpdateFileContent {
     };
 }
 module.exports = UpdateFileContent;
+
+/***/ }),
+
+/***/ 8091:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const github = __nccwpck_require__(4778);
+const core = __nccwpck_require__(7942);
+
+class Blob {
+    constructor(fileName, content) {
+        core.warning("New Blob object created");
+        this.path = fileName,
+        this.mode = '100644',
+        this.type = 'blob'
+        this.content = content;
+    };
+
+    setContent(content) {
+        this.content = content;
+    };
+
+    getBlob() {
+        return {
+            path: this.path,
+            mode: this.mode,
+            type: this.type,
+            content: this.content
+        }
+    };
+};
+
+
+module.exports = Blob;
+
+/***/ }),
+
+/***/ 8421:
+/***/ ((module) => {
+
+class AbstractFactory {
+    CreateInstance() {
+        throw "You must override this method"
+    }
+}
+
+module.exports = AbstractFactory;
+
+/***/ }),
+
+/***/ 8086:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const AbstractFactory = __nccwpck_require__(8421);
+const Blob = __nccwpck_require__(8091);
+
+class FileFactory extends AbstractFactory{
+    CreateInstance(fileName, content) {
+        return new Blob(fileName, content)
+    };
+};
+
+module.exports = FileFactory;
 
 /***/ }),
 
