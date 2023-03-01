@@ -1,35 +1,5 @@
 ﻿const github = require('@actions/github');
 
-// const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
-// const owner = 'zsvs';
-// const repo = 'OctokitAction';
-// const filePath = "dist/index.js"
-// const main = async (user, repoOwner, path) =>{
-//     const fileSHA = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
-//         owner: user,
-//         repo: repoOwner,
-//         path: path,
-//         headers: {
-//             'X-GitHub-Api-Version': '2022-11-28'
-//         }
-//         });
-//         console.log(`${path} sha: ${fileSHA.data.sha}`);
-
-//     const blob = await octokit.request('GET /repos/{owner}/{repo}/git/blobs/{file_sha}', {
-//         owner: user,
-//         repo: repoOwner,
-//         file_sha: fileSHA.data.sha,
-//         headers: {
-//           'X-GitHub-Api-Version': '2022-11-28'
-//         }
-//       });
-//     // console.log(Buffer.from(blob.data.content, "base64").toString("utf-8"));
-//     const fileContent = Buffer.from(blob.data.content, "base64").toString("utf-8");
-//     console.log(fileContent.replace("module.exports = __webpack_exports__;", "YAAAAY I CHANGE IT"));
-// }
-
-// main(owner, repo, filePath);
-
 class UpdateFileContent {
     constructor(gh_token) {
         this.octokit = github.getOctokit(gh_token);
