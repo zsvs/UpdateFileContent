@@ -1,5 +1,5 @@
 ﻿const github = require('@actions/github');
-const blobFactory = require("./fabrics/FileFactory");
+const FileFactory = require("./fabrics/FileFactory");
 
 class UpdateFileContent {
     constructor(gh_token) {
@@ -134,29 +134,20 @@ class UpdateFileContent {
     async UpdateFiles(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
         try {
             const latestSHA = process.env.GITHUB_SHA;
-            let oldFileContentList = [];
-            let newFileContentList = [];
             let files = filePath.split(" ");
-            let treeList = [];
             let blobsList = [];
+            const blobFactory = new FileFactory();
 
-            files.forEach(file => {
-                oldFileContentList.push(this.GetFileContent(repoOwner, repoName, file));
-                blobsList.push(blobFactory.CreateInstance(file, null));
+            files.forEach(async (file) => {
+                let currentFileContent = await this.GetFileContent(repoOwner, repoName, file);
+                blobsList.push(blobFactory.CreateInstance(file, currentFileContent.replace(oldVersion, newVersion)).getBlob());
             });
-
-            oldFileContentList.forEach(oldContent => {
-                let i = 0;
-                blobsList[i].setContent(oldContent.replace(oldVersion, newVersion));
-                treeList.push(blobsList[i].getBlob());
-                i++;
-            });
-
+            this.warning(`Blobs list: ${blobsList}`);
             const tree = await this.octokit.request('POST /repos/{owner}/{repo}/git/trees', {
                 owner: repoOwner,
                 repo: repoName,
                 base_tree: latestSHA,
-                tree: treeList,
+                tree: blobsList,
                 headers: {
                   'X-GitHub-Api-Version': '2022-11-28'
                 }
