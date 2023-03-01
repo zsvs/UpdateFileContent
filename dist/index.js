@@ -8937,7 +8937,7 @@ class UpdateFileContent {
                 repo: repoName,
                 path: filePath,
                 branch: tgtBranch,
-                message: 'my commit message',
+                message: 'Commit by zsvs/UpdateFileContent',
                 sha: fileSHA,
                 committer: {
                   name: 'zsvs',
@@ -8954,10 +8954,6 @@ class UpdateFileContent {
         }
     };
 
-    async CreateBlobs(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
-
-    }
-
     async UpdateFiles(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
         try {
             const latestSHA = await this.octokit.request('GET /repos/{owner}/{repo}/git/ref/{ref}', {
@@ -8971,7 +8967,6 @@ class UpdateFileContent {
             const blobFactory = new FileFactory();
             for (const file of files) {
                 let currentFileData = await this.GetFileContent(repoOwner, repoName, file);
-                //this.warning(`currentFileData: ${currentFileData.fileContent}`);
                 let blobInstance = blobFactory.CreateInstance(file, currentFileData.fileContent.replace(oldVersion, newVersion));
                 this.warning(`Blob Instance: ${blobInstance.getBlob()}`);
                 blobsList.push(blobInstance.getBlob());
@@ -8993,7 +8988,7 @@ class UpdateFileContent {
             const commit = await this.octokit.request('POST /repos/{owner}/{repo}/git/commits', {
                 owner: repoOwner,
                 repo: repoName,
-                message: commitMessage,
+                message: 'Commit by zsvs/UpdateFileContent',
                 tree: tree.data.sha,
                 parents: [latestSHA.data.object.sha],
               });
