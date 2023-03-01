@@ -116,20 +116,9 @@ class UpdateFileContent {
         }
     };
 
-    CreateBlobList(filesPath, blobContentList) {
-        let treeObj = {};
-        let blobList = [];
-        filesPath.forEach(file => {
-            blobContentList.forEach(blobContent => {
-                treeObj.path = file,
-                treeObj.mode = '100644',
-                treeObj.type = 'blob'
-                treeObj.content = blobContent;
-                blobList.push(treeObj);
-            });
-        });
-        return blobList;
-    };
+    async CreateBlobs(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
+
+    }
 
     async UpdateFiles(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
         try {
@@ -137,15 +126,24 @@ class UpdateFileContent {
             let files = filePath.split(" ");
             let blobsList = [];
             const blobFactory = new FileFactory();
-
-            files.forEach(async (file) => {
+            for (const file of files) {
                 let currentFileData = await this.GetFileContent(repoOwner, repoName, file);
                 let blobInstance = blobFactory.CreateInstance(file, currentFileData.replace(oldVersion, newVersion));
                 this.warning(`Blob Instance: ${blobInstance.getBlob()}`)
                 blobsList.push(blobInstance.getBlob());
                 console.log(blobsList);
-            });
+            }
+
+            // files.forEach(async (file) => {
+            //     let currentFileData = await this.GetFileContent(repoOwner, repoName, file);
+            //     let blobInstance = blobFactory.CreateInstance(file, currentFileData.replace(oldVersion, newVersion));
+            //     this.warning(`Blob Instance: ${blobInstance.getBlob()}`)
+            //     blobsList.push(blobInstance.getBlob());
+            //     console.log(blobsList);
+            // });
+
             this.warning(`Blobs list: ${blobsList}`);
+
             const tree = await this.octokit.request('POST /repos/{owner}/{repo}/git/trees', {
                 owner: repoOwner,
                 repo: repoName,
