@@ -32,13 +32,6 @@
 
 class UpdateFileContent {
     constructor() {
-        this.inputs = {};
-    };
-
-    setup(inputs) {
-        for(const [key, value] of Object.entries(inputs)) {
-            this.inputs[key] = value;
-        };
         this.octokit = github.getOctokit(this.inputs.GITHUB_TKN);
     };
 
@@ -49,27 +42,38 @@ class UpdateFileContent {
         this.warning = warning;
         this.error = error;
     };
+
+    async GetListBranches(repoOwner, repoName) {
+        let ListBranches = await this.octokit.request('GET /repos/{owner}/{repo}/branches', {
+            owner:  repoOwner,
+            repo: repoName
+          });
+
+        let branches = [];
+        ListBranches.data.forEach(element => {
+            branches.push(element.name)
+        });
+        this.info(`List of branches: ${branches}`)
+        return branches;
+    };
+
     async CreateBranch(repoOwner, repoName, tgtBranch) {
         try {
 
-            const owner = repoOwner; // this.inputs.OWNER;
-            const repo =  repoName; // this.inputs.REPO;
-            const targetBranch = tgtBranch; // this.inputs.TARGET_BRANCH;
-
             const MainBranchName = await this.octokit.request("GET /repos/{owner}/{repo}", {
-                owner: owner,
-                repo: repo,
+                owner:  repoOwner,
+                repo: repoName,
             });
 
             const MainBranchSHA = await this.octokit.request("GET /repos/{owner}/{repo}/git/refs/{ref}", {
-                owner: owner,
-                repo: repo,
+                owner:  repoOwner,
+                repo: repoName,
                 ref: `heads/${MainBranchName.data.default_branch}`
             });
             const NewBranchCreation = await  this.octokit.request('POST /repos/{owner}/{repo}/git/refs', {
-                owner: owner,
-                repo: repo,
-                ref: `refs/heads/${targetBranch}`,
+                owner:  repoOwner,
+                repo: repoName,
+                ref: `refs/heads/${tgtBranch}`,
                 sha: MainBranchSHA.data.object.sha
             });
 
@@ -85,17 +89,12 @@ class UpdateFileContent {
     async UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
         try {
 
-            const owner = repoOwner;                 // this.inputs.OWNER;
-            const repo = repoName;                   // this.inputs.REPO;
-            const targetBranch = tgtBranch;          // this.inputs.TARGET_BRANCH;
-            const file = filePath;                   // this.inputs.FILES;
-
             this.warning(`Content b64:${Buffer.from(mycontent).toString("base64")}`);
             const fileSHA = await this.octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
-                owner: owner,
-                repo: repo,
-                path: file,
-                ref: targetBranch,
+                owner:  repoOwner,
+                repo: repoName,
+                path: filePath,
+                ref: tgtBranch,
                 headers: {
                     'X-GitHub-Api-Version': '2022-11-28'
                 }
@@ -116,10 +115,10 @@ class UpdateFileContent {
             const newFileContent = fileContent.replace(oldVersion, newVersion);
 
             const FileUpdated = await this.octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
-                owner: owner,
-                repo: repo,
-                path: file,
-                branch: targetBranch,
+                owner:  repoOwner,
+                repo: repoName,
+                path: filePath,
+                branch: tgtBranch,
                 message: 'my commit message',
                 sha: fileSHA.data.sha,
                 committer: {
@@ -134,6 +133,26 @@ class UpdateFileContent {
         } catch (error) {
             this.error(`Couldn't update file. Error: ${error}`)
         }
-    }
+    };
+
+    async run(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
+        try {
+            this.info(`Github env:\n SERVER_URL: ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/commit/${process.env.GITHUB_SHA}`)
+            const listBranches = await this.GetListBranches(repoOwner, repoName);
+            this.warning(`List of branches ${listBranches}`);
+
+            if (listBranches.includes(tgtBranch)){
+                this.warning(`Branch ${tgtBranch} is already exists`);
+                this.notice(`Update file: ${filePath}`);
+                this.warning(`SHA of updated file: ${(await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)).toString()}`);
+            } else {
+                this.info("Start Creating branch");
+                this.warning(`ref of branch: ${(await this.CreateBranch(repoOwner, repoName, tgtBranch)).toString()}`);
+                this.warning(`SHA of updated file: ${(await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)).toString()}`);
+            }
+        } catch (error) {
+            throw error;
+        }
+    };
 }
 module.exports = UpdateFileContent;

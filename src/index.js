@@ -15,7 +15,6 @@ const UpdateFileContent = require("./UpdateFileContent.js");
         };
 
         const action = new UpdateFileContent();
-        action.setup(inputs);
         action.setLogger({
             notice: core.notice,
             info: core.info,
@@ -24,7 +23,7 @@ const UpdateFileContent = require("./UpdateFileContent.js");
             error: core.error,
         });
 
-        await action.run();
+        await action.run(inputs.OWNER, inputs.REPO, inputs.TARGET_BRANCH, inputs.FILE, inputs.OLD_VERSION, inputs.NEW_VERSION);
 
     } catch (error) {
         console.error(error);

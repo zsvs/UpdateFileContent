@@ -22,11 +22,11 @@ on:
       old_version:
         required: true
         type: string
-        default: "tag: "
+        default: "choco upgrade chocolatey"
       new_version:
         required: true
         type: string
-        default: "tag: "
+        default: "Deprecated"
 
 
 
@@ -43,7 +43,7 @@ jobs:
 # TODO Change zsvs/OctokitAction@main to actual action
 
     - name: Get Branch with octo
-      uses: zsvs/OctokitAction@main
+      uses: zsvs/UpdateFileContent@main
       with:
         repo: ${{ inputs.repo }}
         owner: ${{ inputs.owner }}

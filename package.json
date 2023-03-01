@@ -2,8 +2,9 @@
   "name": "git",
   "version": "1.0.0",
   "description": "",
-  "main": "1.js",
+  "main": "index.js",
   "scripts": {
+    "build": "ncc build src/index.js --source-map --license licenses.txt --out dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
