@@ -8939,8 +8939,8 @@ class UpdateFileContent {
             this.info(`${filePath} sha: ${fileSHA.data.sha}`);
 
             const blob = await this.octokit.request('GET /repos/{owner}/{repo}/git/blobs/{file_sha}', {
-                owner: user,
-                repo: repoOwner,
+                owner: repoOwner,
+                repo: repoName,
                 file_sha: fileSHA.data.sha,
                 headers: {
                   'X-GitHub-Api-Version': '2022-11-28'
