@@ -8960,7 +8960,7 @@ class UpdateFileContent {
 
     async UpdateFiles(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
         try {
-            const latestSHA = await octokit.request('GET /repos/{owner}/{repo}/git/ref/{ref}', {
+            const latestSHA = await this.octokit.request('GET /repos/{owner}/{repo}/git/ref/{ref}', {
                 owner: "OWNER",
                 repo: "REPO",
                 ref: `heads/${tgtBranch}`,
