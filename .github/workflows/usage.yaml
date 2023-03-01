@@ -1,0 +1,54 @@
+﻿name: 'Update file content'
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo:
+        requred: true
+        type: string
+        default: oh-my-posh-install
+      file:
+        requred: true
+        type: string
+        default: oh-my-posh-install.ps1
+      owner:
+        requred: true
+        type: string
+        default: zsvs
+      target_branch:
+        requred: true
+        type: string
+        default: test
+      old_version:
+        required: true
+        type: string
+        default: "tag: "
+      new_version:
+        required: true
+        type: string
+        default: "tag: "
+
+
+
+jobs:
+
+  TestOctokit:
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/setup-node@v2
+      name: Node installation
+      with:
+        node-version: 12
+# TODO Change zsvs/OctokitAction@main to actual action
+
+    - name: Get Branch with octo
+      uses: zsvs/OctokitAction@main
+      with:
+        repo: ${{ inputs.repo }}
+        owner: ${{ inputs.owner }}
+        file: ${{ inputs.file }}
+        old_version : ${{ inputs.old_version }}
+        new_version: ${{ inputs.new_version}}
+        target_branch: ${{ inputs.target_branch }}
+        github_tkn: ${{ secrets.GITHUB_TOKEN }}

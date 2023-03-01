@@ -1,0 +1,29 @@
+﻿name: "Create branch"
+description: "Create branch in selected repo"
+
+inputs:
+  repo:
+    requred: true
+    type: string
+  github_tkn:
+    requred: true
+    type: string
+  file:
+    requred: true
+    type: string
+  owner:
+    requred: true
+    type: string
+  target_branch:
+    requred: true
+    type: string
+  old_version:
+    required: true
+    type: string
+  new_version:
+    required: true
+    type: string
+
+runs:
+  using: "node12"
+  main: "dist/index.js"
