@@ -10,7 +10,7 @@ on:
       file:
         requred: true
         type: string
-        default: "oh-my-posh-install.ps1"
+        default: "oh-my-posh-install.ps1 README.md"
       owner:
         requred: true
         type: string
@@ -22,7 +22,7 @@ on:
       old_version:
         required: true
         type: string
-        default: "choco upgrade chocolatey"
+        default: "posh"
       new_version:
         required: true
         type: string
