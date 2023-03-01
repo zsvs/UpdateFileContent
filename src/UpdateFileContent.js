@@ -106,7 +106,7 @@ class UpdateFileContent {
 
     async CreatePR(repoOwner, repoName, tgtBranch) {
         try {
-            const prURL = await octokit.request('POST /repos/{owner}/{repo}/pulls', {
+            const prURL = await this.octokit.request('POST /repos/{owner}/{repo}/pulls', {
                 owner: repoOwner,
                 repo: repoName,
                 title: 'Amazing new feature',
