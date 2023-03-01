@@ -8916,9 +8916,9 @@ class UpdateFileContent {
                 'X-GitHub-Api-Version': '2022-11-28'
                 }
             });
-
+            const sha = fileSHA.data.sha;
             const fileContent = Buffer.from(blob.data.content, "base64").toString("utf-8");
-            return fileContent;
+            return {fileContent, sha};
         } catch (error) {
             this.error(`Couldn't retrive file content. ${error}`);
             throw error;
@@ -8928,7 +8928,8 @@ class UpdateFileContent {
 
     async UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
         try {
-            const fileContent = await this.GetFileContent(repoOwner, repoName, filePath);
+            const fileContent = await this.GetFileContent(repoOwner, repoName, filePath).fileContent;
+            const fileSHA =  await this.GetFileContent(repoOwner, repoName, filePath).sha;
             const newFileContent = fileContent.replace(oldVersion, newVersion);
 
             const FileUpdated = await this.octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
@@ -8937,7 +8938,7 @@ class UpdateFileContent {
                 path: filePath,
                 branch: tgtBranch,
                 message: 'my commit message',
-                sha: fileSHA.data.sha,
+                sha: fileSHA,
                 committer: {
                   name: 'zsvs',
                   email: 'stepanezc@gmail.com'
