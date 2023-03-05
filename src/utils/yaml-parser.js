@@ -1,6 +1,10 @@
 ﻿const YAML = require('yaml');
 const fs = require('fs');
 
+//TODO Think about standardized user configs(in yaml format)
+//TODO Compare given configs(from user file) with configs that we should change
+//TODO Change necessary params in remote file
+
 // const file = fs.readFileSync('./stg-configs.yaml', 'utf8');
 // const confs = YAML.parse(file);
 // let confObj = confs;
@@ -14,7 +18,6 @@ class Configs {
     constructor() {
         this.inputs = {};
         this.configs = undefined;
-        //this.octokit = github.getOctokit(gh_token);
     };
 
     setup(inputs) {
@@ -44,8 +47,6 @@ class Configs {
     setInputsFromConfiguration(path) {
         try {
             this.configs = this.getConfiguration(path);
-            // console.log(this.configs);
-
             this.inputs.OWNER = this.configs.inputs.owner.default;
             this.inputs.REPO = this.configs.inputs.repo.default;
             this.inputs.TARGET_BRANCH = this.configs.inputs.target_branch.default;

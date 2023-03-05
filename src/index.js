@@ -3,6 +3,8 @@ const UpdateFileContent = require("./UpdateFileContent");
 
 (async () =>{
     try {
+        //TODO Only param is needed - path_to_config_file
+        //TODO Replace this block from core.getInput to yaml-parser.Configs
         const inputs = {
             REPO: core.getInput("repo").trim(),
             OWNER: core.getInput("owner").trim(),
@@ -11,7 +13,7 @@ const UpdateFileContent = require("./UpdateFileContent");
             FILE: core.getInput("file").trim(),
             OLD_VERSION: core.getInput("old_version").trim(),
             NEW_VERSION: core.getInput("new_version").trim()
-
+        //TODO Replace this block from core.getInput to yaml-parser.Configs
         };
 
         const action = new UpdateFileContent(inputs.GITHUB_TKN);
