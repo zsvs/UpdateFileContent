@@ -13,6 +13,7 @@ const fs = require('fs');
 class Configs {
     constructor() {
         this.inputs = {};
+        this.configs = undefined;
         //this.octokit = github.getOctokit(gh_token);
     };
 
@@ -40,27 +41,37 @@ class Configs {
         };
     };
 
-    rewriteConfiguration(path) {
+    setInputsFromConfiguration(path) {
         try {
             this.configs = this.getConfiguration(path);
-            console.log(this.configs);
+            // console.log(this.configs);
 
-            this.inputs.OWNER = this.configs.inputs.owner;
-            this.inputs.REPO = this.configs.inputs.repo;
-            this.inputs.TARGET_BRANCH = this.configs.inputs.target_branch;
-            this.inputs.FILE = this.configs.inputs.file;
-            this.inputs.OLD_VERSION = this.configs.inputs.old_version;
-            this.inputs.NEW_VERSION = this.configs.inputs.new_version;
+            this.inputs.OWNER = this.configs.inputs.owner.default;
+            this.inputs.REPO = this.configs.inputs.repo.default;
+            this.inputs.TARGET_BRANCH = this.configs.inputs.target_branch.default;
+            this.inputs.FILE = this.configs.inputs.file.default;
+            this.inputs.OLD_VERSION = this.configs.inputs.old_version.default;
+            this.inputs.NEW_VERSION = this.configs.inputs.new_version.default;
         } catch (error) {
             throw error;
         }
 
     };
 
-    showConfiguration() {
-        console.log(YAML.stringify(this.getConfiguration(path)));
+    getResultInputs() {
+        try {
+            return {
+                OWNER: this.inputs.OWNER,
+                REPO: this.inputs.REPO,
+                TARGET_BRANCH: this.inputs.TARGET_BRANCH,
+                FILE: this.inputs.FILE,
+                OLD_VERSION: this.inputs.OLD_VERSION,
+                NEW_VERSION: this.inputs.NEW_VERSION
+            }
+        } catch (error) {
+            throw error;
+        }
     }
-
 };
 
 const path = './stg-configs.yaml';
@@ -76,5 +87,7 @@ const inputs = {
 
 };
 confs.setup(inputs);
-confs.getConfiguration(path)
-confs.showConfiguration();
+confs.setInputsFromConfiguration(path);
+const inputsResults = confs.getResultInputs();
+
+console.log(inputsResults);
