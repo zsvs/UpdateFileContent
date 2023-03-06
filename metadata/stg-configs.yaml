@@ -1,0 +1,9 @@
+﻿ENVIRONMENT: prd ppr
+
+inputs:
+  repo: "oh-my-posh-install"
+  file: "oh-my-posh-install.ps1 README.md"
+  owner: "zsvs"
+  target_branch: "test"
+  old_version: 0.0.1
+  new_version: 0.1.0

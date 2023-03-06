@@ -1,18 +1,8 @@
 ﻿const YAML = require('yaml');
 const fs = require('fs');
 
-//TODO Think about standardized user configs(in yaml format)
-//TODO Compare given configs(from user file) with configs that we should change
-//TODO Change necessary params in remote file
+//TODO Get inputs from inputs and get remote yaml for change values
 
-// const file = fs.readFileSync('./stg-configs.yaml', 'utf8');
-// const confs = YAML.parse(file);
-// let confObj = confs;
-// confObj.on.workflow_dispatch.inputs.repo.default = confObj.on.workflow_dispatch.inputs.repo.default.replace("install", "delete")
-
-// YAML.stringify(confObj);
-
-// console.log(YAML.stringify(confObj))
 
 class Configs {
     constructor() {
@@ -47,12 +37,13 @@ class Configs {
     setInputsFromConfiguration(path) {
         try {
             this.configs = this.getConfiguration(path);
-            this.inputs.OWNER = this.configs.inputs.owner.default;
-            this.inputs.REPO = this.configs.inputs.repo.default;
-            this.inputs.TARGET_BRANCH = this.configs.inputs.target_branch.default;
-            this.inputs.FILE = this.configs.inputs.file.default;
-            this.inputs.OLD_VERSION = this.configs.inputs.old_version.default;
-            this.inputs.NEW_VERSION = this.configs.inputs.new_version.default;
+            console.log(`Environmets: ${this.configs.ENVIRONMENT.split(" ")}`)
+            this.inputs.OWNER = this.configs.inputs.owner;
+            this.inputs.REPO = this.configs.inputs.repo;
+            this.inputs.TARGET_BRANCH = this.configs.inputs.target_branch;
+            this.inputs.FILE = this.configs.inputs.file;
+            this.inputs.OLD_VERSION = this.configs.inputs.old_version;
+            this.inputs.NEW_VERSION = this.configs.inputs.new_version;
         } catch (error) {
             throw error;
         }
@@ -75,7 +66,9 @@ class Configs {
     }
 };
 
-const path = './stg-configs.yaml';
+const path = '../../metadata/stg-configs.yaml';
+const remotePath = '../../metadata/test-data.yaml';
+
 const confs = new Configs;
 const inputs = {
     REPO: "repo1",
@@ -90,5 +83,11 @@ const inputs = {
 confs.setup(inputs);
 confs.setInputsFromConfiguration(path);
 const inputsResults = confs.getResultInputs();
+console.log(`Old version: ${inputsResults.OLD_VERSION}`);
 
-console.log(inputsResults);
+const remoteConfs = new Configs;
+let remoteYaml = remoteConfs.getConfiguration(remotePath);
+console.log(`Current remote confs version: ${remoteYaml.front.tag}`);
+
+remoteYaml.front.tag = remoteYaml.front.tag.replace(inputsResults.OLD_VERSION, inputsResults.NEW_VERSION);
+console.log(`New remote conf to commit: ${remoteYaml.front}`);
