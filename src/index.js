@@ -9,7 +9,7 @@ const UpdateFileContent = require("./UpdateFileContent");
             GITHUB_TKN: core.getInput("github_tkn").trim(),
             TARGET_BRANCH: core.getInput("target_branch").trim(),
             FILE: core.getInput("file").trim(),
-            NEW_VALUE: core.getInput("new_version").trim(),
+            NEW_VALUE: core.getInput("new_value").trim(),
             PARENT_KEY: core.getInput("parent_key").trim(),
             CHILD_KEY: core.getInput("child_key").trim(),
             PR_TITLE: core.getInput("pr_title").trim(),

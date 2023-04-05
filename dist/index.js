@@ -8941,7 +8941,7 @@ class updateFileContent {
             const fileContent = (await this.getFileContent(repoOwner, repoName, filePath)).fileContent;
             let yamlContent = YAML.parse(fileContent);
             const fileSHA =  (await this.getFileContent(repoOwner, repoName, filePath)).sha;
-            const newFileContent = JSON.stringify(this.__updateKey(yamlContent, parentKey, childKey, newValue));
+            const newFileContent = YAML.stringify(this.__updateKey(yamlContent, parentKey, childKey, newValue));
 
             const FileUpdated = await this.octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
                 owner:  repoOwner,
@@ -8979,7 +8979,7 @@ class updateFileContent {
             for (const file of files) {
                 let currentFileData = await this.getFileContent(repoOwner, repoName, file);
                 let yamlContent = YAML.parse(currentFileData);
-                const newFileContent = JSON.stringify(this.__updateKey(yamlContent, parentKey, childKey, newValue));
+                const newFileContent = YAML.stringify(this.__updateKey(yamlContent, parentKey, childKey, newValue));
                 let blobInstance = blobFactory.createInstance(file, newFileContent);
                 this.warning(`Blob Instance: ${blobInstance.getBlob()}`);
                 blobsList.push(blobInstance.getBlob());
@@ -17652,7 +17652,7 @@ const UpdateFileContent = __nccwpck_require__(820);
             GITHUB_TKN: core.getInput("github_tkn").trim(),
             TARGET_BRANCH: core.getInput("target_branch").trim(),
             FILE: core.getInput("file").trim(),
-            NEW_VALUE: core.getInput("new_version").trim(),
+            NEW_VALUE: core.getInput("new_value").trim(),
             PARENT_KEY: core.getInput("parent_key").trim(),
             CHILD_KEY: core.getInput("child_key").trim(),
             PR_TITLE: core.getInput("pr_title").trim(),

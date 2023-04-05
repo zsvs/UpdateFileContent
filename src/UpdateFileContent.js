@@ -103,7 +103,7 @@ class updateFileContent {
             const fileContent = (await this.getFileContent(repoOwner, repoName, filePath)).fileContent;
             let yamlContent = YAML.parse(fileContent);
             const fileSHA =  (await this.getFileContent(repoOwner, repoName, filePath)).sha;
-            const newFileContent = JSON.stringify(this.__updateKey(yamlContent, parentKey, childKey, newValue));
+            const newFileContent = YAML.stringify(this.__updateKey(yamlContent, parentKey, childKey, newValue));
 
             const FileUpdated = await this.octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
                 owner:  repoOwner,
@@ -141,7 +141,7 @@ class updateFileContent {
             for (const file of files) {
                 let currentFileData = await this.getFileContent(repoOwner, repoName, file);
                 let yamlContent = YAML.parse(currentFileData);
-                const newFileContent = JSON.stringify(this.__updateKey(yamlContent, parentKey, childKey, newValue));
+                const newFileContent = YAML.stringify(this.__updateKey(yamlContent, parentKey, childKey, newValue));
                 let blobInstance = blobFactory.createInstance(file, newFileContent);
                 this.warning(`Blob Instance: ${blobInstance.getBlob()}`);
                 blobsList.push(blobInstance.getBlob());
