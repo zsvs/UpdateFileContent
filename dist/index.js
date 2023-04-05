@@ -8929,8 +8929,8 @@ class updateFileContent {
 
     __updateKey (fileContent, parentKey, childKey, value) {
         Object.keys(fileContent[parentKey]).forEach(element => {
-            if (fileContent.front[element][childKey]) {
-                fileContent.front[element][childKey] = value;
+            if (fileContent[parentKey][element][childKey]) {
+                fileContent[parentKey][element][childKey] = value;
             };
         })
         return fileContent
@@ -8974,11 +8974,12 @@ class updateFileContent {
               });
 
             let files = filePath.split(" ");
+            console.log(files);
             let blobsList = [];
             const blobFactory = new FileFactory();
-            for (const file of files) {
+            for (var file of files) {
                 let currentFileData = await this.getFileContent(repoOwner, repoName, file);
-                let yamlContent = YAML.parse(currentFileData);
+                let yamlContent = YAML.parse(currentFileData.fileContent);
                 const newFileContent = YAML.stringify(this.__updateKey(yamlContent, parentKey, childKey, newValue));
                 let blobInstance = blobFactory.createInstance(file, newFileContent);
                 this.warning(`Blob Instance: ${blobInstance.getBlob()}`);
@@ -9045,7 +9046,6 @@ class updateFileContent {
             this.info(`Github env:\n SERVER_URL: ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/commit/${process.env.GITHUB_SHA}`)
             const listBranches = await this.getListBranches(repoOwner, repoName);
             this.warning(`List of branches ${listBranches}`);
-            if (filePath.split(" ").length)
             if (listBranches.includes(tgtBranch)){
                 this.warning(`Branch ${tgtBranch} is already exists`);
                 this.notice(`Update file: ${filePath}`);
@@ -9053,7 +9053,7 @@ class updateFileContent {
                     this.warning(`SHA of updated file: ${await this.updateFile(repoOwner, repoName, tgtBranch, filePath, newValue, parentKey, childKey)}`);
                     this.warning(`Creating PR: ${await this.createPR(repoOwner, repoName, tgtBranch, pr_title, pr_message)}`);
                 } else if (filePath.split(" ").length > 1) {
-                    this.warning(`SHA of updated file: ${await this.updateFiles(repoOwner, repoName, tgtBranch, filePath, newValue, parentKey, childKey)}`);
+                    this.warning(`SHA of updated files: ${await this.updateFiles(repoOwner, repoName, tgtBranch, filePath, newValue, parentKey, childKey)}`);
                     this.warning(`Creating PR: ${await this.createPR(repoOwner, repoName, tgtBranch, pr_title, pr_message)}`);
                 };
 
@@ -9065,7 +9065,7 @@ class updateFileContent {
                     this.warning(`SHA of updated file: ${await this.updateFile(repoOwner, repoName, tgtBranch, filePath, newValue, parentKey, childKey)}`);
                     this.warning(`Creating PR: ${await this.createPR(repoOwner, repoName, tgtBranch, pr_title, pr_message)}`);
                 } else if (filePath.split(" ").length > 1) {
-                    this.warning(`SHA of updated file: ${await this.updateFiles(repoOwner, repoName, tgtBranch, filePath, newValue, parentKey, childKey)}`);
+                    this.warning(`SHA of updated files: ${await this.updateFiles(repoOwner, repoName, tgtBranch, filePath, newValue, parentKey, childKey)}`);
                     this.warning(`Creating PR: ${await this.createPR(repoOwner, repoName, tgtBranch, pr_title, pr_message)}`);
                 };
 
