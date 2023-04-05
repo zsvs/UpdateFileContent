@@ -6,11 +6,11 @@ on:
       repo:
         required: true
         type: string
-        default: oh-my-posh-install
+        default: TestUpdateContentAction
       file:
         required: true
         type: string
-        default: "oh-my-posh-install.ps1 README.md"
+        default: "test-data.yaml"
       owner:
         required: true
         type: string
