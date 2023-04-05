@@ -2,7 +2,7 @@
 const Blob = require("../blob");
 
 class FileFactory extends AbstractFactory{
-    CreateInstance(fileName, content) {
+    createInstance(fileName, content) {
         return new Blob(fileName, content)
     };
 };
