@@ -1,5 +1,5 @@
 ﻿class AbstractFactory {
-    CreateInstance() {
+    createInstance() {
         throw "You must override this method"
     }
 }

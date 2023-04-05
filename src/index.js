@@ -9,9 +9,11 @@ const UpdateFileContent = require("./UpdateFileContent");
             GITHUB_TKN: core.getInput("github_tkn").trim(),
             TARGET_BRANCH: core.getInput("target_branch").trim(),
             FILE: core.getInput("file").trim(),
-            OLD_VERSION: core.getInput("old_version").trim(),
-            NEW_VERSION: core.getInput("new_version").trim()
-
+            NEW_VALUE: core.getInput("new_value").trim(),
+            PARENT_KEY: core.getInput("parent_key").trim(),
+            CHILD_KEY: core.getInput("child_key").trim(),
+            PR_TITLE: core.getInput("pr_title").trim(),
+            PR_MESSAGE: core.getInput("pr_message").trim()
         };
 
         const action = new UpdateFileContent(inputs.GITHUB_TKN);
@@ -23,7 +25,7 @@ const UpdateFileContent = require("./UpdateFileContent");
             error: core.error,
         });
 
-        await action.run(inputs.OWNER, inputs.REPO, inputs.TARGET_BRANCH, inputs.FILE, inputs.OLD_VERSION, inputs.NEW_VERSION);
+        await action.run(inputs.OWNER, inputs.REPO, inputs.TARGET_BRANCH, inputs.FILE, inputs.NEW_VALUE, inputs.PARENT_KEY, inputs.CHILD_KEY, inputs.PR_TITLE, inputs.PR_MESSAGE);
 
     } catch (error) {
         console.error(error);

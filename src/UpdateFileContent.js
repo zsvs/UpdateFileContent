@@ -1,7 +1,8 @@
 ﻿const github = require('@actions/github');
 const FileFactory = require("./fabrics/FileFactory");
+const YAML = require('yaml');
 
-class UpdateFileContent {
+class updateFileContent {
     constructor(gh_token) {
         this.octokit = github.getOctokit(gh_token);
     };
@@ -14,7 +15,7 @@ class UpdateFileContent {
         this.error = error;
     };
 
-    async GetListBranches(repoOwner, repoName) {
+    async getListBranches(repoOwner, repoName) {
         let ListBranches = await this.octokit.request('GET /repos/{owner}/{repo}/branches', {
             owner:  repoOwner,
             repo: repoName
@@ -28,7 +29,7 @@ class UpdateFileContent {
         return branches;
     };
 
-    async CreateBranch(repoOwner, repoName, tgtBranch) {
+    async createBranch(repoOwner, repoName, tgtBranch) {
         try {
 
             const MainBranchName = await this.octokit.request("GET /repos/{owner}/{repo}", {
@@ -57,7 +58,7 @@ class UpdateFileContent {
         }
     };
 
-    async GetFileContent(repoOwner, repoName, filePath) {
+    async getFileContent(repoOwner, repoName, filePath) {
         try {
             const fileSHA = await this.octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
                 owner:  repoOwner,
@@ -88,18 +89,28 @@ class UpdateFileContent {
 
     };
 
-    async UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
+    __updateKey (fileContent, parentKey, childKey, value) {
+        Object.keys(fileContent[parentKey]).forEach(element => {
+            if (fileContent[parentKey][element][childKey]) {
+                fileContent[parentKey][element][childKey] = value;
+            };
+        })
+        return fileContent
+    };
+
+    async updateFile(repoOwner, repoName, tgtBranch, filePath, newValue, parentKey, childKey) {
         try {
-            const fileContent = (await this.GetFileContent(repoOwner, repoName, filePath)).fileContent;
-            const fileSHA =  (await this.GetFileContent(repoOwner, repoName, filePath)).sha;
-            const newFileContent = fileContent.replace(oldVersion, newVersion);
+            const fileContent = (await this.getFileContent(repoOwner, repoName, filePath)).fileContent;
+            let yamlContent = YAML.parse(fileContent);
+            const fileSHA =  (await this.getFileContent(repoOwner, repoName, filePath)).sha;
+            const newFileContent = YAML.stringify(this.__updateKey(yamlContent, parentKey, childKey, newValue));
 
             const FileUpdated = await this.octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
                 owner:  repoOwner,
                 repo: repoName,
                 path: filePath,
                 branch: tgtBranch,
-                message: 'Commit by zsvs/UpdateFileContent',
+                message: 'Commit by zsvs/updateFileContent',
                 sha: fileSHA,
                 committer: {
                   name: 'zsvs',
@@ -116,7 +127,7 @@ class UpdateFileContent {
         }
     };
 
-    async UpdateFiles(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
+    async updateFiles(repoOwner, repoName, tgtBranch, filePath, newValue, parentKey, childKey) {
         try {
             const latestSHA = await this.octokit.request('GET /repos/{owner}/{repo}/git/ref/{ref}', {
                 owner: repoOwner,
@@ -125,11 +136,14 @@ class UpdateFileContent {
               });
 
             let files = filePath.split(" ");
+            console.log(files);
             let blobsList = [];
             const blobFactory = new FileFactory();
-            for (const file of files) {
-                let currentFileData = await this.GetFileContent(repoOwner, repoName, file);
-                let blobInstance = blobFactory.CreateInstance(file, currentFileData.fileContent.replace(oldVersion, newVersion));
+            for (var file of files) {
+                let currentFileData = await this.getFileContent(repoOwner, repoName, file);
+                let yamlContent = YAML.parse(currentFileData.fileContent);
+                const newFileContent = YAML.stringify(this.__updateKey(yamlContent, parentKey, childKey, newValue));
+                let blobInstance = blobFactory.createInstance(file, newFileContent);
                 this.warning(`Blob Instance: ${blobInstance.getBlob()}`);
                 blobsList.push(blobInstance.getBlob());
                 console.log(blobsList);
@@ -150,7 +164,7 @@ class UpdateFileContent {
             const commit = await this.octokit.request('POST /repos/{owner}/{repo}/git/commits', {
                 owner: repoOwner,
                 repo: repoName,
-                message: 'Commit by zsvs/UpdateFileContent',
+                message: 'Commit by zsvs/updateFileContent',
                 tree: tree.data.sha,
                 parents: [latestSHA.data.object.sha],
               });
@@ -168,13 +182,13 @@ class UpdateFileContent {
         }
     };
 
-    async CreatePR(repoOwner, repoName, tgtBranch) {
+    async createPR(repoOwner, repoName, tgtBranch, title, message) {
         try {
             const prURL = await this.octokit.request('POST /repos/{owner}/{repo}/pulls', {
                 owner: repoOwner,
                 repo: repoName,
-                title: 'Amazing new feature',
-                body: 'Please pull these awesome changes in!',
+                title: title,
+                body: message,
                 head: `${repoOwner}:${tgtBranch}`,
                 base: 'main',
                 headers: {
@@ -189,33 +203,32 @@ class UpdateFileContent {
 
     };
 
-    async run(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion) {
+    async run(repoOwner, repoName, tgtBranch, filePath, newValue, parentKey, childKey, pr_title, pr_message) {
         try {
             this.info(`Github env:\n SERVER_URL: ${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/commit/${process.env.GITHUB_SHA}`)
-            const listBranches = await this.GetListBranches(repoOwner, repoName);
+            const listBranches = await this.getListBranches(repoOwner, repoName);
             this.warning(`List of branches ${listBranches}`);
-            if (filePath.split(" ").length)
             if (listBranches.includes(tgtBranch)){
                 this.warning(`Branch ${tgtBranch} is already exists`);
                 this.notice(`Update file: ${filePath}`);
                 if (filePath.split(" ").length == 1) {
-                    this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
-                    this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                    this.warning(`SHA of updated file: ${await this.updateFile(repoOwner, repoName, tgtBranch, filePath, newValue, parentKey, childKey)}`);
+                    this.warning(`Creating PR: ${await this.createPR(repoOwner, repoName, tgtBranch, pr_title, pr_message)}`);
                 } else if (filePath.split(" ").length > 1) {
-                    this.warning(`SHA of updated file: ${await this.UpdateFiles(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
-                    this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                    this.warning(`SHA of updated files: ${await this.updateFiles(repoOwner, repoName, tgtBranch, filePath, newValue, parentKey, childKey)}`);
+                    this.warning(`Creating PR: ${await this.createPR(repoOwner, repoName, tgtBranch, pr_title, pr_message)}`);
                 };
 
             } else {
                 this.info("Start Creating branch");
                 this.info(`File path: ${filePath}`)
-                this.warning(`ref of branch: ${await this.CreateBranch(repoOwner, repoName, tgtBranch)}`);
+                this.warning(`ref of branch: ${await this.createBranch(repoOwner, repoName, tgtBranch)}`);
                 if (filePath.split(" ").length == 1) {
-                    this.warning(`SHA of updated file: ${await this.UpdateFile(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
-                    this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                    this.warning(`SHA of updated file: ${await this.updateFile(repoOwner, repoName, tgtBranch, filePath, newValue, parentKey, childKey)}`);
+                    this.warning(`Creating PR: ${await this.createPR(repoOwner, repoName, tgtBranch, pr_title, pr_message)}`);
                 } else if (filePath.split(" ").length > 1) {
-                    this.warning(`SHA of updated file: ${await this.UpdateFiles(repoOwner, repoName, tgtBranch, filePath, oldVersion, newVersion)}`);
-                    this.warning(`Creating PR: ${await this.CreatePR(repoOwner, repoName, tgtBranch)}`);
+                    this.warning(`SHA of updated files: ${await this.updateFiles(repoOwner, repoName, tgtBranch, filePath, newValue, parentKey, childKey)}`);
+                    this.warning(`Creating PR: ${await this.createPR(repoOwner, repoName, tgtBranch, pr_title, pr_message)}`);
                 };
 
             }
@@ -224,4 +237,4 @@ class UpdateFileContent {
         }
     };
 }
-module.exports = UpdateFileContent;
+module.exports = updateFileContent;

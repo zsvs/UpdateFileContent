@@ -4,31 +4,41 @@ on:
   workflow_dispatch:
     inputs:
       repo:
-        requred: true
+        required: true
         type: string
-        default: oh-my-posh-install
+        default: TestUpdateContentAction
       file:
-        requred: true
+        required: true
         type: string
-        default: "oh-my-posh-install.ps1 README.md"
+        default: "test-data.yaml"
       owner:
-        requred: true
+        required: true
         type: string
         default: zsvs
       target_branch:
-        requred: true
+        required: true
         type: string
         default: test
-      old_version:
+      new_value:
         required: true
         type: string
-        default: "posh"
-      new_version:
+        default: "1.0.0"
+      parent_key:
         required: true
         type: string
-        default: "Deprecated"
-
-
+        default: "front"
+      child_key:
+        required: true
+        type: string
+        default: "tag"
+      pr_title:
+        required: true
+        type: string
+        default: "Update tag value"
+      pr_message:
+        required: true
+        type: string
+        default: "This tag value has been updated by GH action!"
 
 jobs:
 
@@ -39,16 +49,19 @@ jobs:
     - uses: actions/setup-node@v2
       name: Node installation
       with:
-        node-version: 14
+        node-version: 16
 # TODO Change zsvs/OctokitAction@main to actual action
 
     - name: Get Branch with octo
-      uses: zsvs/UpdateFileContent@main
+      uses: zsvs/UpdateFileContent@feature/yaml-config
       with:
         repo: ${{ inputs.repo }}
         owner: ${{ inputs.owner }}
         file: ${{ inputs.file }}
-        old_version : ${{ inputs.old_version }}
-        new_version: ${{ inputs.new_version}}
+        new_value: ${{ inputs.new_value}}
         target_branch: ${{ inputs.target_branch }}
+        parent_key: ${{ inputs.parent_key}}
+        child_key: ${{ inputs.child_key }}
+        pr_title: ${{ inputs.pr_title }}
+        pr_message: ${{ inputs.pr_message }}
         github_tkn: ${{ secrets.PAT_TOKEN }}

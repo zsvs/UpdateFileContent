@@ -17,13 +17,22 @@ inputs:
   target_branch:
     requred: true
     type: string
-  old_version:
+  new_value:
     required: true
     type: string
-  new_version:
+  parent_key:
+    required: true
+    type: string
+  child_key:
+    required: true
+    type: string
+  pr_title:
+    required: true
+    type: string
+  pr_message:
     required: true
     type: string
 
 runs:
-  using: "node12"
+  using: "node16"
   main: "dist/index.js"
