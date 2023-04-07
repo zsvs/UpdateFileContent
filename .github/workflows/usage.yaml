@@ -52,7 +52,7 @@ jobs:
         node-version: 16
 
     - name: Get Branch with octo
-      uses: zsvs/UpdateFileContent@v1.0.0
+      uses: zsvs/UpdateFileContent@unit-tests
       with:
         repo: ${{ inputs.repo }}
         owner: ${{ inputs.owner }}
