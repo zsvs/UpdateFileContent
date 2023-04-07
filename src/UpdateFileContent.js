@@ -16,17 +16,23 @@ class updateFileContent {
     };
 
     async getListBranches(repoOwner, repoName) {
-        let ListBranches = await this.octokit.request('GET /repos/{owner}/{repo}/branches', {
-            owner:  repoOwner,
-            repo: repoName
-          });
+        try {
+            let ListBranches = await this.octokit.request('GET /repos/{owner}/{repo}/branches', {
+                owner:  repoOwner,
+                repo: repoName
+              });
 
-        let branches = [];
-        ListBranches.data.forEach(element => {
-            branches.push(element.name)
-        });
-        this.info(`List of branches: ${branches}`)
-        return branches;
+            let branches = [];
+            ListBranches.data.forEach(element => {
+                branches.push(element.name)
+            });
+            this.info(`List of branches: ${branches}`);
+            return branches;
+        } catch (error) {
+            this.error(`Couldn't retrive list of branches. ${error}`);
+            throw error;
+        }
+
     };
 
     async createBranch(repoOwner, repoName, tgtBranch) {
@@ -183,7 +189,7 @@ class updateFileContent {
                 ref: `heads/${tgtBranch}`,
                 sha: commit.data.sha,
               });
-
+            return commit.data.sha
         } catch (error) {
             this.error(`Couldn't update files. ${error}`);
             throw error;

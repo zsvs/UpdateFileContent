@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "ncc build src/index.js --source-map --license licenses.txt --out dist",
-    "test": "jest /tests/*"
+    "test": "npx jest /tests/* --coverage"
   },
   "keywords": [],
   "author": "",
