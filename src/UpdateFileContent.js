@@ -89,13 +89,21 @@ class updateFileContent {
 
     };
 
-    __updateKey (fileContent, parentKey, childKey, value) {
-        Object.keys(fileContent[parentKey]).forEach(element => {
-            if (fileContent[parentKey][element][childKey]) {
-                fileContent[parentKey][element][childKey] = value;
-            };
-        })
-        return fileContent
+    __updateKey(fileContent, parentKey, childKey, value) {
+        try {
+            Object.keys(fileContent[parentKey]).forEach(element => {
+                if (fileContent[parentKey][element][childKey]) {
+                    fileContent[parentKey][element][childKey] = value;
+                } else {
+                    this.error(`No such keys ${parentKey}.${element}.${childKey}`)
+                };
+            });
+            return fileContent
+        } catch (error) {
+            this.error(`Couldn't update given key. ${error}`);
+            throw error;
+        }
+
     };
 
     async updateFile(repoOwner, repoName, tgtBranch, filePath, newValue, parentKey, childKey) {
