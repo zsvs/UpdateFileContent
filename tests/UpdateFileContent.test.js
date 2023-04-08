@@ -2,7 +2,6 @@
 const YAML = require("yaml");
 const core = require("@actions/core");
 const updateFileContent = require("../src/UpdateFileContent");
-// const FileFactory = require("../src/fabrics/FileFactory");
 
 describe("UpdateFileContent methods tests", () => {
     let octokit;
@@ -197,7 +196,7 @@ describe("UpdateFileContent methods tests", () => {
         expect(octokit.request).toHaveBeenNthCalledWith(3, "POST /repos/{owner}/{repo}/git/commits", {
             owner: "repoOwner",
             repo: "repoName",
-            message: 'Commit by zsvs/updateFileContent',
+            message: "Commit by zsvs/updateFileContent",
             tree: "tree_sha",
             parents: ["latest_sha"],
         });
@@ -209,5 +208,28 @@ describe("UpdateFileContent methods tests", () => {
             sha: "commit_sha",
           });
         expect(files).toBe("commit_sha");
+    });
+
+    test("createPR test", async () => {
+        const octokit = {
+            request: jest.fn()
+        };
+        action.octokit = octokit;
+        octokit.request
+            .mockResolvedValueOnce({ data: { url: "https://some.fancy.url" }});
+
+        prURL = await action.createPR("repoOwner", "repoName", "tgtBranch", "mock_title_message", "mock_message_body");
+        expect(prURL).toBe("https://some.fancy.url");
+        expect(octokit.request).toHaveBeenCalledWith("POST /repos/{owner}/{repo}/pulls", {
+            owner: "repoOwner",
+            repo: "repoName",
+            title: "mock_title_message",
+            body: "mock_message_body",
+            head: "repoOwner:tgtBranch",
+            base: "main",
+            headers: {
+              "X-GitHub-Api-Version": "2022-11-28"
+            }
+        });
     });
 });
