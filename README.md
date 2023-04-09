@@ -1,3 +1,5 @@
+[![Unit tests](https://github.com/zsvs/UpdateFileContent/actions/workflows/unit-tests.yaml/badge.svg)](https://github.com/zsvs/UpdateFileContent/actions/workflows/unit-tests.yaml)
+
 # UpdateFileContent
 
 **`This action works only with YAML files.`**
