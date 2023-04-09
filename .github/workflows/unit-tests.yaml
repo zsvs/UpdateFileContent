@@ -21,12 +21,15 @@ jobs:
     steps:
 
     - uses: actions/checkout@v2
-      name: Build the Docker image
+      name: Checkout code
 
     - uses: actions/setup-node@v2
       name: Node installation
       with:
         node-version: 16
+
+    - name: Install dependencies
+      run: npm i
 
     - name: Run unit-tests
       run: npm run test
