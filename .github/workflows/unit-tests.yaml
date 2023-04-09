@@ -1,0 +1,35 @@
+﻿name: "Unit tests"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - src/**
+      - tests/**
+  pull_request:
+    branches:
+      - main
+    paths:
+      - src/**
+      - tests/**
+
+jobs:
+
+  UnitTests:
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v2
+      name: Checkout code
+
+    - uses: actions/setup-node@v2
+      name: Node installation
+      with:
+        node-version: 16
+
+    - name: Install dependencies
+      run: npm i
+
+    - name: Run unit-tests
+      run: npm run test

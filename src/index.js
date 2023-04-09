@@ -1,5 +1,5 @@
 ﻿const core = require("@actions/core");
-const UpdateFileContent = require("./UpdateFileContent");
+const updateFileContent = require("./UpdateFileContent");
 
 (async () =>{
     try {
@@ -16,7 +16,7 @@ const UpdateFileContent = require("./UpdateFileContent");
             PR_MESSAGE: core.getInput("pr_message").trim()
         };
 
-        const action = new UpdateFileContent(inputs.GITHUB_TKN);
+        const action = new updateFileContent(inputs.GITHUB_TKN);
         action.setLogger({
             notice: core.notice,
             info: core.info,
