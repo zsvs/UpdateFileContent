@@ -18,7 +18,7 @@ describe("UpdateFileContent methods tests", () => {
 
         core.info = jest.fn((someValue) => `Core info mock ${someValue}`);
         core.warning = jest.fn((someValue) => `Core warning mock ${someValue}`);
-        core.error = jest.fn((someValue) => `Core error mock ${someValue}`);
+        core.error = jest.fn((someValue) => `Core error mock ${someValue}`)
         core.notice = jest.fn((someValue) => `Core notice mock ${someValue}`);
 
         action.setLogger({
