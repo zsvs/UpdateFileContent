@@ -55,10 +55,10 @@ front: # parent_key input
     - Required: true
     - Type: string
 
-* `file` - File or files that we want to update:
+* `file` - File or list of files(with space as delimeter) that we want to update:
     - Required: true
     - Type: string
-    - Example value: `test-data.yaml`
+    - Example value: `test-data.yaml test-data2.yaml`
 
 * `owner` - Repository owner user or organization:
     - Required: true
