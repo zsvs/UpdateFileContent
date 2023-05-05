@@ -57,6 +57,7 @@ jobs:
         repo: ${{ inputs.repo }}
         owner: ${{ inputs.owner }}
         file: ${{ inputs.file }}
+        # Use github.event.release.tag_name for new value
         new_value: ${{ inputs.new_value}}
         target_branch: ${{ inputs.target_branch }}
         parent_key: ${{ inputs.parent_key}}
